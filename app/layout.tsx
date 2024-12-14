@@ -4,7 +4,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import DndProvder from "./context/DndProvder";
 import "./globals.css";
 
-
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -16,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Dynamic Form Builder",
+  title: "Quick Form Builder",
   description:
     "A flexible and intuitive tool for creating and managing dynamic forms.",
 };
