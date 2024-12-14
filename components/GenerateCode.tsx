@@ -4,7 +4,7 @@ import { z, ZodTypeAny } from "zod";
 import getCodeSnippet from "./common/getCodeSnippet";
 import { DragItem } from "./FormBuilder";
 
-const generateImports = (fields: DragItem[]) => {
+const generateImports = () => {
   const importSet = new Set([
     '"use client" \n',
     'import { useForm } from "react-hook-form"',
@@ -16,6 +16,7 @@ const generateImports = (fields: DragItem[]) => {
   return importSet;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const generateZodSchema = (formFields: DragItem[]): z.ZodObject<any> => {
   const schemaObject: Record<string, z.ZodTypeAny> = {};
 
@@ -80,7 +81,7 @@ export const getZodSchemaString = (formFields: DragItem[]): string => {
 };
 
 export const generateCode = ({ fields }: { fields: DragItem[] }) => {
-  const imports = Array.from(generateImports(fields)).join("\n");
+  const imports = Array.from(generateImports()).join("\n");
 
   const schema = getZodSchemaString(fields);
 

@@ -1,9 +1,12 @@
 "use client";
 
-import { use, useState } from "react";
+import { use } from "react";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { FormBuilderContext } from "./FormBuilder";
 import RenderDynamicField from "./common/RenderDynamicField";
+
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "./ui/button";
 
 export const FormPlayground = () => {
@@ -13,29 +16,25 @@ export const FormPlayground = () => {
 
   const { fields } = formBuilderState;
 
-  const [formData, setFormData] = useState({});
-  const schema = z.object(
-    fields.reduce((acc, field) => {
-      acc[field.name] = field.validation;
-      return acc;
-    }, {})
-  );
+  const formSchema = z.object({
+    name: z.string(),
+  });
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formValues = Object.fromEntries(
-      new FormData(e.target as HTMLFormElement)
-    );
+  const { handleSubmit } = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {},
+  });
+
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
     try {
-      schema.parse(formValues);
-      alert("Form submitted successfully!");
-    } catch (error: any) {
-      alert(error.errors.map((err: any) => err.message).join(", "));
+      console.log(values);
+    } catch (error) {
+      console.error("Form submission error", error);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="text-left px-2">
+    <form onSubmit={handleSubmit(onSubmit)} className="text-left px-2">
       <div className="flex flex-col gap-4 mb-4">
         {fields.map((field, index) => (
           <div key={field.id}>
