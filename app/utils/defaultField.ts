@@ -1,3 +1,5 @@
+import { InputDragItem } from "@/lib/interface";
+
 export const getInput = ({ id }: { id: number }) => {
   return {
     id,
@@ -7,5 +9,5 @@ export const getInput = ({ id }: { id: number }) => {
     type: "text",
     required: true,
     disabled: false,
-  };
+  } as InputDragItem;
 };

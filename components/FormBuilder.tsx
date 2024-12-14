@@ -2,27 +2,12 @@
 
 import { getInput } from "@/app/utils/defaultField";
 import { getRandomSixDigit } from "@/app/utils/random";
+import { DragItem } from "@/lib/interface";
 import { createContext, useState } from "react";
 import { AvailableFieldsType, DragField } from "./formBuilder/DragField";
 import { DropZone } from "./formBuilder/DropZone";
 import EditDialog from "./formBuilder/EditDialog";
 import FormPreview from "./formBuilder/FormPreview";
-
-export type DragItem = {
-  id: number;
-  fieldType: AvailableFieldsType;
-  label: string;
-  name: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
-};
-
-const defaultState: DragItem[] = [
-  {
-    ...getInput({ id: 1 }),
-    fieldType: "Input",
-  },
-];
 
 type FormBuilderContextType = {
   fields: DragItem[];
@@ -35,7 +20,7 @@ export const FormBuilderContext = createContext<FormBuilderContextType | null>(
 );
 
 export const FormBuilder = () => {
-  const [fields, setFields] = useState<DragItem[]>(defaultState);
+  const [fields, setFields] = useState<DragItem[]>([]);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedField, setSelectedField] = useState<DragItem | null>(null);
 
@@ -73,7 +58,15 @@ export const FormBuilder = () => {
           <DropZone onAddField={addFields} />
         </div>
         <div className="md:col-span-6">
-          <FormPreview />
+          {fields.length === 0 ? (
+            <div className="flex flex-col items-center justify-center">
+              <h4 className="text-lg font-bold mb-2">
+                Drop fields to preview the form
+              </h4>
+            </div>
+          ) : (
+            <FormPreview />
+          )}
         </div>
         <EditDialog
           selectedField={selectedField}

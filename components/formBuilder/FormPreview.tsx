@@ -4,7 +4,7 @@ import ViewCode from "../ViewCode";
 
 const FormPreview = () => {
   return (
-    <Tabs defaultValue="preview" className="w-full text-center">
+    <Tabs defaultValue="preview" className="w-full text-center relative">
       <TabsList>
         <TabsTrigger value="preview">Preview</TabsTrigger>
         <TabsTrigger value="code">Code</TabsTrigger>

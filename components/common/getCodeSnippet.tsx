@@ -1,15 +1,20 @@
-import { DragItem } from "../FormBuilder";
+import { DragItem } from "@/lib/interface";
 
 const getCodeSnippet = ({ field }: { field: DragItem }) => {
   if (field.fieldType === "Input") {
     return `
-    <Label htmlFor="${field.name}">${field.label}</Label>
-      <Input
-          id="${field.name}"
+        <FormField
+          control={form.control}
           name="${field.name}"
-          type="${field.type || "text"}"
-          placeholder="${field.placeholder || ""}"
-      />`;
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>${field.label}</FormLabel>
+              <FormControl>
+                <Input placeholder="${field.placeholder}" {...field} type="${field.type}" />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}`;
   }
 
   return null;

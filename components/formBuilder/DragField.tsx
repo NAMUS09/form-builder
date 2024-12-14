@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { useDrag } from "react-dnd";
 
-export type AvailableFieldsType = "Input" | "Textarea" | "Select";
+export type AvailableFieldsType = "Input" | "Textarea" | "Select" | "Label";
 
 export const DragField = ({ type }: { type: AvailableFieldsType }) => {
   const ref = useRef<HTMLDivElement>(null);

@@ -1,8 +1,8 @@
 "use client";
 
+import { DragItem } from "@/lib/interface";
 import { z, ZodTypeAny } from "zod";
 import getCodeSnippet from "./common/getCodeSnippet";
-import { DragItem } from "./FormBuilder";
 
 const generateImports = () => {
   const importSet = new Set([
@@ -11,6 +11,7 @@ const generateImports = () => {
     'import { zodResolver } from "@hookform/resolvers/zod"',
     'import * as z from "zod"',
     'import { Button } from "@/components/ui/button"',
+    'import {\n  Form,\n  FormControl,\n  FormDescription,\n  FormField,\n  FormItem,\n  FormLabel,\n  FormMessage,\n} from "@/components/ui/form"',
   ]);
 
   return importSet;
@@ -21,11 +22,11 @@ export const generateZodSchema = (formFields: DragItem[]): z.ZodObject<any> => {
   const schemaObject: Record<string, z.ZodTypeAny> = {};
 
   const processField = (field: DragItem): void => {
-    if (field.variant === "Label") return;
+    if (field.fieldType === "Label") return;
 
     let fieldSchema: z.ZodTypeAny;
 
-    switch (field.variant) {
+    switch (field.fieldType) {
       case "Input":
         if (field.type === "email") {
           fieldSchema = z.string().email();
@@ -37,7 +38,6 @@ export const generateZodSchema = (formFields: DragItem[]): z.ZodObject<any> => {
           fieldSchema = z.string();
           break;
         }
-
       default:
         fieldSchema = z.string();
     }
@@ -51,6 +51,20 @@ export const generateZodSchema = (formFields: DragItem[]): z.ZodObject<any> => {
   formFields.flat().forEach(processField);
 
   return z.object(schemaObject);
+};
+
+export const generateDefaultValues = <T extends { name: string }>(
+  fields: T[]
+): Record<T["name"], string> => {
+  return fields.reduce(
+    (defaultValues, field) => {
+      if (!defaultValues[field.name as T["name"]]) {
+        defaultValues[field.name as T["name"]] = "";
+      }
+      return defaultValues;
+    },
+    {} as Record<T["name"], string>
+  );
 };
 
 export const zodSchemaToString = (schema: z.ZodTypeAny): string => {
@@ -69,6 +83,22 @@ export const zodSchemaToString = (schema: z.ZodTypeAny): string => {
   return "z.unknown()";
 };
 
+export const getZodDefaultValuesString = (fields: DragItem[]): string => {
+  const defaultValues = generateDefaultValues(fields);
+
+  const entries = Object.entries(defaultValues);
+
+  return `defaultValues: {
+${entries
+  .map(([key, value], index) =>
+    index === 0
+      ? `\t\t${key}: ${JSON.stringify(value)}`
+      : `\t\t${key}: ${JSON.stringify(value)}`
+  )
+  .join(",\n")}
+    }`;
+};
+
 export const getZodSchemaString = (formFields: DragItem[]): string => {
   const schema = generateZodSchema(formFields);
   const schemaEntries = Object.entries(schema.shape)
@@ -84,6 +114,7 @@ export const generateCode = ({ fields }: { fields: DragItem[] }) => {
   const imports = Array.from(generateImports()).join("\n");
 
   const schema = getZodSchemaString(fields);
+  const defaultValuesString = getZodDefaultValuesString(fields);
 
   const formFields = fields
     .map((field) => getCodeSnippet({ field }))
@@ -92,10 +123,9 @@ export const generateCode = ({ fields }: { fields: DragItem[] }) => {
 
   const componentBlock = `
 export default function Form() {
- const { handleSubmit, register } = useForm<z.infer<typeof formSchema>>({
+ const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-    }
+    ${defaultValuesString},
   })
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
@@ -107,10 +137,12 @@ export default function Form() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      ${formFields}
-      <Button type="submit">Submit</Button>
-    </form>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        ${formFields}
+        <Button type="submit">Submit</Button>
+      </form>
+    </Form>
   );
 }`;
 

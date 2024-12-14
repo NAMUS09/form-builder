@@ -1,9 +1,12 @@
+import { DragItem, InputType } from "@/lib/interface";
 import { use, useEffect, useState } from "react";
-import { DragItem, FormBuilderContext } from "../FormBuilder";
+import { FormBuilderContext } from "../FormBuilder";
 import { Button } from "../ui/button";
+import { Checkbox } from "../ui/checkbox";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -57,6 +60,7 @@ const EditDialog: React.FC<EditDialogProps> = ({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit {currentField.fieldType} Field</DialogTitle>
+          <DialogDescription></DialogDescription>
         </DialogHeader>
         <div>
           <Label htmlFor="label">Label</Label>
@@ -97,7 +101,7 @@ const EditDialog: React.FC<EditDialogProps> = ({
               <Label htmlFor="type">Type</Label>
               <Select
                 value={currentField.type}
-                onValueChange={(value) =>
+                onValueChange={(value: InputType) =>
                   setCurrentField({ ...currentField, type: value })
                 }
               >
@@ -116,6 +120,37 @@ const EditDialog: React.FC<EditDialogProps> = ({
             </div>
           </>
         )}
+
+        <div className="flex gap-2">
+          <div className="flex p-2 border-2 items-center gap-2 rounded">
+            <Checkbox
+              id="required"
+              checked={currentField.required}
+              onCheckedChange={(checkedState) =>
+                setCurrentField({
+                  ...currentField,
+                  required: checkedState as boolean,
+                })
+              }
+            />
+            <Label htmlFor="required">Required</Label>
+          </div>
+
+          <div className="flex p-2 border-2 items-center gap-2 rounded">
+            <Checkbox
+              id="disabled"
+              checked={currentField.disabled}
+              onCheckedChange={(checkedState) =>
+                setCurrentField({
+                  ...currentField,
+                  disabled: checkedState as boolean,
+                })
+              }
+            />
+            <Label htmlFor="disabled">Disabled</Label>
+          </div>
+        </div>
+
         <DialogFooter>
           <Button onClick={handleSave}>Save changes</Button>
         </DialogFooter>

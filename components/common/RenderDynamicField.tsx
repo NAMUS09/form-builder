@@ -1,21 +1,39 @@
-import { DragItem } from "../FormBuilder";
+import { DragItem } from "@/lib/interface";
+import { UseFormReturn } from "react-hook-form";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "../ui/form";
 import { Input } from "../ui/input";
-import { Label } from "../ui/label";
 
 type RenderDynamicFieldProps = {
-  field: DragItem;
+  formField: DragItem;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  form: UseFormReturn<any>;
 };
 
-const RenderDynamicField: React.FC<RenderDynamicFieldProps> = ({ field }) => {
-  if (field.fieldType === "Input") {
+const RenderDynamicField: React.FC<RenderDynamicFieldProps> = ({
+  formField,
+  form,
+}) => {
+  if (formField.fieldType === "Input") {
     return (
       <>
-        <Label htmlFor={field.name}>{field.label}</Label>
-        <Input
-          id={field.name}
-          name={field.name}
-          type={field.type}
-          placeholder={field.placeholder}
+        <FormField
+          control={form.control}
+          name={formField.name}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{formField.label}</FormLabel>
+              <FormControl>
+                <Input placeholder={formField.placeholder} {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
       </>
     );

@@ -7,7 +7,9 @@ import { FormBuilderContext } from "./FormBuilder";
 import RenderDynamicField from "./common/RenderDynamicField";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { generateDefaultValues, generateZodSchema } from "./GenerateCode";
 import { Button } from "./ui/button";
+import { Form } from "./ui/form";
 
 export const FormPlayground = () => {
   const formBuilderState = use(FormBuilderContext);
@@ -16,13 +18,13 @@ export const FormPlayground = () => {
 
   const { fields } = formBuilderState;
 
-  const formSchema = z.object({
-    name: z.string(),
-  });
+  const formSchema = generateZodSchema(fields);
 
-  const { handleSubmit } = useForm<z.infer<typeof formSchema>>({
+  const defaultValues = generateDefaultValues(fields);
+
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {},
+    defaultValues: defaultValues,
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
@@ -34,15 +36,17 @@ export const FormPlayground = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="text-left px-2">
-      <div className="flex flex-col gap-4 mb-4">
-        {fields.map((field, index) => (
-          <div key={field.id}>
-            <RenderDynamicField key={index} field={field} />
-          </div>
-        ))}
-      </div>
-      <Button type="submit">Submit</Button>
-    </form>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="text-left px-2">
+        <div className="flex flex-col gap-4 mb-4">
+          {fields.map((field) => (
+            <div key={field.id}>
+              <RenderDynamicField formField={field} form={form} />
+            </div>
+          ))}
+        </div>
+        <Button type="submit">Submit</Button>
+      </form>
+    </Form>
   );
 };

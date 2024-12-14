@@ -1,8 +1,9 @@
+import { DragItem } from "@/lib/interface";
 import { motion } from "framer-motion";
 import { Trash2 } from "lucide-react";
 import React, { use } from "react";
 import { LuPencil } from "react-icons/lu";
-import { DragItem, FormBuilderContext } from "../FormBuilder";
+import { FormBuilderContext } from "../FormBuilder";
 import { Button } from "../ui/button";
 
 type FieldItemProps = {
