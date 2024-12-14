@@ -1,9 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { use, useState } from "react";
 import { z } from "zod";
+import { FormBuilderContext } from "./FormBuilder";
+import RenderDynamicField from "./common/RenderDynamicField";
+import { Button } from "./ui/button";
 
-export const FormPlayground = ({ fields }: { fields: any[] }) => {
+export const FormPlayground = () => {
+  const formBuilderState = use(FormBuilderContext);
+
+  if (!formBuilderState) throw new Error("FormBuilderContext is not available");
+
+  const { fields } = formBuilderState;
+
   const [formData, setFormData] = useState({});
   const schema = z.object(
     fields.reduce((acc, field) => {
@@ -26,23 +35,15 @@ export const FormPlayground = ({ fields }: { fields: any[] }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      {fields.map((field, index) => (
-        <div key={index} className="mb-4">
-          <label className="block mb-1">{field.label}</label>
-          <input
-            name={field.name}
-            type="text"
-            className="p-2 border rounded w-full"
-            onChange={(e) =>
-              setFormData({ ...formData, [field.name]: e.target.value })
-            }
-          />
-        </div>
-      ))}
-      <button type="submit" className="p-2 bg-blue-500 text-white rounded">
-        Submit
-      </button>
+    <form onSubmit={handleSubmit} className="text-left px-2">
+      <div className="flex flex-col gap-4 mb-4">
+        {fields.map((field, index) => (
+          <div key={field.id}>
+            <RenderDynamicField key={index} field={field} />
+          </div>
+        ))}
+      </div>
+      <Button type="submit">Submit</Button>
     </form>
   );
 };
