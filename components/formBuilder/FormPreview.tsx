@@ -15,7 +15,7 @@ const FormPreview = () => {
         </div>
       </TabsContent>
       <TabsContent value="code">
-        <div className="md:max-h-[80vh] overflow-auto">
+        <div className="md:max-h-[80vh] md:max-w-full max-w-[92vw] ">
           <ViewCode />
         </div>
       </TabsContent>

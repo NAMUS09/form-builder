@@ -1,10 +1,10 @@
 "use client";
 
 import { DragItem } from "@/lib/interface";
-import { z, ZodTypeAny } from "zod";
+import { z, ZodIssueOptionalMessage, ZodTypeAny } from "zod";
 import getCodeSnippet from "./common/getCodeSnippet";
 
-const generateImports = () => {
+const generateImports = (fields: DragItem[]) => {
   const importSet = new Set([
     '"use client" \n',
     'import { useForm } from "react-hook-form"',
@@ -13,6 +13,12 @@ const generateImports = () => {
     'import { Button } from "@/components/ui/button"',
     'import {\n  Form,\n  FormControl,\n  FormDescription,\n  FormField,\n  FormItem,\n  FormLabel,\n  FormMessage,\n} from "@/components/ui/form"',
   ]);
+
+  fields.forEach((field) => {
+    if (field.fieldType === "Input") {
+      importSet.add('import { Input } from "@/components/ui/input"');
+    }
+  });
 
   return importSet;
 };
@@ -29,22 +35,36 @@ export const generateZodSchema = (formFields: DragItem[]): z.ZodObject<any> => {
     switch (field.fieldType) {
       case "Input":
         if (field.type === "email") {
-          fieldSchema = z.string().email();
+          fieldSchema = z
+            .string({ message: field.validation.requiredMessage })
+            .email({ message: "Email is invalid" });
+
           break;
         } else if (field.type === "number") {
-          fieldSchema = z.coerce.number();
+          fieldSchema = z.coerce.number({
+            message: field.validation.requiredMessage,
+          });
           break;
         } else {
-          fieldSchema = z.string();
+          fieldSchema = z.string({ message: field.validation.requiredMessage });
           break;
         }
       default:
-        fieldSchema = z.string();
+        fieldSchema = z.string({ message: field.validation.requiredMessage });
     }
 
-    if (field.required !== true) {
+    // Apply regex validation if specified
+    // Apply regex validation if specified and the field is a string
+    if (field.validation.regex && fieldSchema instanceof z.ZodString) {
+      fieldSchema = fieldSchema.regex(new RegExp(field.validation.regex), {
+        message: field.validation.regexMessage ?? "Invalid value",
+      });
+    }
+
+    if (field.validation.required !== true) {
       fieldSchema = fieldSchema.optional();
     }
+
     schemaObject[field.name] = fieldSchema as ZodTypeAny;
   };
 
@@ -68,16 +88,88 @@ export const generateDefaultValues = <T extends { name: string }>(
 };
 
 export const zodSchemaToString = (schema: z.ZodTypeAny): string => {
-  if (schema instanceof z.ZodDefault) {
-    return `${zodSchemaToString(schema._def.innerType)}.default(${JSON.stringify(schema._def.defaultValue())})`;
+  if (schema instanceof z.ZodString) {
+    let stringSchema = `z.string()`;
+
+    if (schema._def.errorMap) {
+      const baseMessage = schema._def.errorMap(
+        { path: [] } as unknown as ZodIssueOptionalMessage,
+        { defaultError: "This field is required", data: undefined }
+      ).message;
+
+      stringSchema = `z.string({ message: "${baseMessage}" })`;
+    }
+
+    if (schema.isEmail) {
+      // Handle email validation
+      stringSchema += `.email({ message: "Email is invalid" })`;
+    }
+
+    // Handle regex validation
+    if (schema._def.checks) {
+      schema._def.checks.forEach((check) => {
+        if (check.kind === "regex") {
+          stringSchema += `.regex(${check.regex}, { message: "${check.message || "Invalid value"}" })`;
+        }
+      });
+    }
+
+    return stringSchema;
   }
 
-  if (schema instanceof z.ZodString) {
-    return "z.string()";
+  if (schema instanceof z.ZodNumber) {
+    return "z.number()";
+  }
+
+  if (schema instanceof z.ZodBoolean) {
+    return "z.boolean()";
   }
 
   if (schema instanceof z.ZodOptional) {
-    return `${zodSchemaToString(schema.unwrap())}.optional()`;
+    const innerTypeString = zodSchemaToString(schema.unwrap());
+    return `${innerTypeString}.optional()`;
+  }
+
+  if (schema instanceof z.ZodNullable) {
+    const innerTypeString = zodSchemaToString(schema.unwrap());
+    return `${innerTypeString}.nullable()`;
+  }
+
+  if (schema instanceof z.ZodArray) {
+    const elementTypeString = zodSchemaToString(schema.element);
+    return `z.array(${elementTypeString})`;
+  }
+
+  if (schema instanceof z.ZodEnum) {
+    const values = JSON.stringify(schema.options);
+    return `z.enum(${values})`;
+  }
+
+  if (schema instanceof z.ZodObject) {
+    const shape = schema.shape;
+    const shapeStrings = Object.entries(shape)
+      .map(
+        ([key, value]) => `${key}: ${zodSchemaToString(value as ZodTypeAny)}`
+      )
+      .join(", ");
+    return `z.object({ ${shapeStrings} })`;
+  }
+
+  if (schema instanceof z.ZodUnion) {
+    const options = schema.options.map(zodSchemaToString).join(", ");
+    return `z.union([${options}])`;
+  }
+
+  if (schema instanceof z.ZodLiteral) {
+    return `z.literal(${JSON.stringify(schema._def.value)})`;
+  }
+
+  if (schema instanceof z.ZodUnknown) {
+    return "z.unknown()";
+  }
+
+  if (schema instanceof z.ZodAny) {
+    return "z.any()";
   }
 
   return "z.unknown()";
@@ -111,7 +203,7 @@ export const getZodSchemaString = (formFields: DragItem[]): string => {
 };
 
 export const generateCode = ({ fields }: { fields: DragItem[] }) => {
-  const imports = Array.from(generateImports()).join("\n");
+  const imports = Array.from(generateImports(fields)).join("\n");
 
   const schema = getZodSchemaString(fields);
   const defaultValuesString = getZodDefaultValuesString(fields);

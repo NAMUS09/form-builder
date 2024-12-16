@@ -6,8 +6,13 @@ interface BaseField {
   fieldType: AvailableFieldsType;
   name: string;
   placeholder: string;
-  required: boolean;
-  disabled: boolean;
+  validation: {
+    required: boolean;
+    requiredMessage: string;
+    disabled: boolean;
+    regex: string | null;
+    regexMessage: string | null;
+  };
 }
 
 export type InputType = "email" | "number" | "text";

@@ -5,7 +5,12 @@ import { useDrag } from "react-dnd";
 
 export type AvailableFieldsType = "Input" | "Textarea" | "Select" | "Label";
 
-export const DragField = ({ type }: { type: AvailableFieldsType }) => {
+type DragFieldProps = {
+  type: AvailableFieldsType;
+  onAddField: (type: AvailableFieldsType) => void;
+};
+
+export const DragField: React.FC<DragFieldProps> = ({ type, onAddField }) => {
   const ref = useRef<HTMLDivElement>(null);
 
   const [, drag] = useDrag(() => ({
@@ -20,6 +25,7 @@ export const DragField = ({ type }: { type: AvailableFieldsType }) => {
     <div
       ref={ref}
       className="py-2 px-4 text-sm w-fit border rounded-full cursor-move"
+      onClick={() => onAddField(type)}
     >
       {type}
     </div>

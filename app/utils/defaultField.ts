@@ -7,7 +7,12 @@ export const getInput = ({ id }: { id: number }) => {
     name: "username_" + id,
     placeholder: "Enter your username",
     type: "text",
-    required: true,
-    disabled: false,
+    validation: {
+      required: true,
+      requiredMessage: "Username is required",
+      disabled: false,
+      regex: null,
+      regexMessage: null,
+    },
   } as InputDragItem;
 };

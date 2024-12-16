@@ -46,7 +46,7 @@ export const FormBuilder = () => {
         <h4 className="text-lg font-bold mb-2">Available fields</h4>
 
         <div className="flex flex-col">
-          <DragField type="Input" />
+          <DragField type="Input" onAddField={addFields} />
         </div>
       </div>
       <FormBuilderContext value={{ fields, setFields, openEditDialog }}>

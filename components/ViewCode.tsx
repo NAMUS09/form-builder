@@ -55,6 +55,7 @@ const ViewCode = () => {
               overflowX: "auto", // Enable horizontal scrolling
               padding: "1rem",
               textAlign: "left", // Ensure text is aligned to the left
+              overflow: "auto",
             }}
           >
             {tokens.map((line, i) => (
