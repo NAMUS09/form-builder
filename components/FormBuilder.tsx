@@ -1,6 +1,6 @@
 "use client";
 
-import { getInput } from "@/app/utils/defaultField";
+import { getInput, getSelect } from "@/app/utils/defaultField";
 import { getRandomSixDigit } from "@/app/utils/random";
 import { DragItem } from "@/lib/interface";
 import { createContext, useState } from "react";
@@ -33,6 +33,14 @@ export const FormBuilder = () => {
         { ...defaultInput, fieldType: type },
       ]);
     }
+    if (type === "Select") {
+      const fieldId = getRandomSixDigit();
+      const defaultSelect = getSelect({ id: fieldId });
+      setFields((prevFields) => [
+        ...prevFields,
+        { ...defaultSelect, fieldType: type },
+      ]);
+    }
   };
 
   const openEditDialog = (field: DragItem) => {
@@ -45,8 +53,9 @@ export const FormBuilder = () => {
       <div className="md:col-span-2 border-r-2 md:h-[85svh]">
         <h4 className="text-lg font-bold mb-2">Available fields</h4>
 
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-2">
           <DragField type="Input" onAddField={addFields} />
+          <DragField type="Select" onAddField={addFields} />
         </div>
       </div>
       <FormBuilderContext value={{ fields, setFields, openEditDialog }}>

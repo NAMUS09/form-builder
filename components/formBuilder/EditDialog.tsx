@@ -1,6 +1,13 @@
-import { DragItem, InputType } from "@/lib/interface";
+import { getNextId } from "@/app/utils/common";
+import {
+  BaseValidation,
+  DragItem,
+  InputType,
+  RegexValidation,
+} from "@/lib/interface";
 import clsx from "clsx";
-import { use, useEffect, useState } from "react";
+import { Plus, Trash2 } from "lucide-react";
+import { SetStateAction, use, useEffect, useState } from "react";
 import { FormBuilderContext } from "../FormBuilder";
 import {
   Accordion,
@@ -35,6 +42,94 @@ type EditDialogProps = {
   setIsEditDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
+const SelectSpecificRender = ({
+  currentField,
+  setCurrentField,
+}: {
+  currentField: DragItem;
+  setCurrentField: React.Dispatch<SetStateAction<DragItem | null>>;
+}) => {
+  if (currentField.fieldType !== "Select") return null;
+
+  const handleAddSelectOptions = () => {
+    const id = getNextId(currentField.options);
+    setCurrentField({
+      ...currentField,
+      options: [...currentField.options, { id, value: "", label: "" }],
+    });
+  };
+
+  const handleRemoveSelectOption = (id: number) => {
+    setCurrentField({
+      ...currentField,
+      options: currentField.options.filter((option) => option.id !== id),
+    });
+  };
+  return (
+    <div className="flex flex-col gap-2">
+      <h4>Add Select Options</h4>
+      <div className="flex flex-col gap-2">
+        {currentField.options.map((option, index) => (
+          <div className="flex gap-2" key={index}>
+            <div className="flex gap-2">
+              <Input
+                value={option.label}
+                placeholder="Option label"
+                onChange={(e) => {
+                  const editOpions = currentField.options.map((op) => {
+                    if (op.id === option.id) {
+                      return {
+                        ...op,
+                        label: e.target.value,
+                      };
+                    }
+                    return op;
+                  });
+                  setCurrentField({
+                    ...currentField,
+                    options: editOpions,
+                  });
+                }}
+              />
+              <Input
+                value={option.value}
+                placeholder="Option value"
+                onChange={(e) => {
+                  const editOpions = currentField.options.map((op) => {
+                    if (op.id === option.id) {
+                      return {
+                        ...op,
+                        value: e.target.value,
+                      };
+                    }
+                    return op;
+                  });
+                  setCurrentField({
+                    ...currentField,
+                    options: editOpions,
+                  });
+                }}
+              />
+            </div>
+            <Button
+              variant={"ghost"}
+              size={"icon"}
+              onClick={() => handleRemoveSelectOption(option.id)}
+            >
+              <Trash2 />
+            </Button>
+          </div>
+        ))}
+      </div>
+      <div>
+        <Button variant={"outline"} onClick={() => handleAddSelectOptions()}>
+          <Plus /> Add
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 const EditDialog: React.FC<EditDialogProps> = ({
   selectedField,
   isEditDialogOpen,
@@ -48,7 +143,9 @@ const EditDialog: React.FC<EditDialogProps> = ({
 
   const [currentField, setCurrentField] = useState<DragItem | null>(null);
   const [customValidation, setCustomValidation] = useState(
-    !!currentField?.validation.regex ? "regex" : ""
+    currentField?.customValidation && !!currentField?.validation.regex
+      ? "regex"
+      : ""
   );
   const [regexMessage, setRegexMessage] = useState<string | null>(null);
   const [regexError, setRegexError] = useState(false);
@@ -76,7 +173,7 @@ const EditDialog: React.FC<EditDialogProps> = ({
           ...currentField.validation,
           regex: null,
           regexMessage: null,
-        },
+        } as BaseValidation & RegexValidation,
       });
     }
     setCustomValidation(value);
@@ -96,7 +193,7 @@ const EditDialog: React.FC<EditDialogProps> = ({
           ...currentField.validation,
           regex: regexValue,
           regexMessage: null,
-        },
+        } as BaseValidation & RegexValidation,
       });
     } catch {
       setRegexError(true);
@@ -170,6 +267,13 @@ const EditDialog: React.FC<EditDialogProps> = ({
           </>
         )}
 
+        {currentField.fieldType === "Select" && (
+          <SelectSpecificRender
+            currentField={currentField}
+            setCurrentField={setCurrentField}
+          />
+        )}
+
         <div className="flex gap-2">
           <div className="flex p-2 border-2 items-center gap-2 rounded">
             <Checkbox
@@ -181,7 +285,7 @@ const EditDialog: React.FC<EditDialogProps> = ({
                   validation: {
                     ...currentField.validation,
                     required: checkedState as boolean,
-                  },
+                  } as BaseValidation & RegexValidation,
                 })
               }
             />
@@ -198,7 +302,7 @@ const EditDialog: React.FC<EditDialogProps> = ({
                   validation: {
                     ...currentField.validation,
                     disabled: checkedState as boolean,
-                  },
+                  } as BaseValidation & RegexValidation,
                 })
               }
             />
@@ -218,60 +322,62 @@ const EditDialog: React.FC<EditDialogProps> = ({
                   validation: {
                     ...currentField.validation,
                     requiredMessage: e.target.value,
-                  },
+                  } as BaseValidation & RegexValidation,
                 })
               }
             />
           </div>
         )}
 
-        <Accordion
-          type="single"
-          collapsible
-          value={customValidation}
-          onValueChange={handleValueChange}
-        >
-          <AccordionItem value="regex">
-            <AccordionTrigger>Add custom validation?</AccordionTrigger>
-            <AccordionContent>
-              <div className="p-1">
-                {/* custom regex */}
-                <Label htmlFor="regex">Regex</Label>
-                <Input
-                  id="regex"
-                  value={currentField.validation?.regex ?? ""}
-                  onChange={handleRegexChange}
-                />
+        {currentField.customValidation && (
+          <Accordion
+            type="single"
+            collapsible
+            value={customValidation}
+            onValueChange={handleValueChange}
+          >
+            <AccordionItem value="regex">
+              <AccordionTrigger>Add custom validation?</AccordionTrigger>
+              <AccordionContent>
+                <div className="p-1">
+                  {/* custom regex */}
+                  <Label htmlFor="regex">Regex</Label>
+                  <Input
+                    id="regex"
+                    value={currentField.validation?.regex ?? ""}
+                    onChange={handleRegexChange}
+                  />
 
-                {!!regexMessage && currentField.validation?.regex && (
-                  <p
-                    className={clsx(
-                      "text-sm",
-                      regexError ? "text-red-500" : "text-green-500"
-                    )}
-                  >
-                    {regexMessage}
-                  </p>
-                )}
+                  {!!regexMessage && currentField.validation?.regex && (
+                    <p
+                      className={clsx(
+                        "text-sm",
+                        regexError ? "text-red-500" : "text-green-500"
+                      )}
+                    >
+                      {regexMessage}
+                    </p>
+                  )}
 
-                <Label htmlFor="regex">Regex Message</Label>
-                <Input
-                  id="regexMessage"
-                  value={currentField.validation?.regexMessage ?? ""}
-                  onChange={(e) =>
-                    setCurrentField({
-                      ...currentField,
-                      validation: {
-                        ...currentField.validation,
-                        regexMessage: e.target.value,
-                      },
-                    })
-                  }
-                />
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
+                  <Label htmlFor="regex">Regex Message</Label>
+                  <Input
+                    id="regexMessage"
+                    value={currentField.validation?.regexMessage ?? ""}
+                    onChange={(e) =>
+                      setCurrentField({
+                        ...currentField,
+                        validation: {
+                          ...currentField.validation,
+                          regexMessage: e.target.value,
+                        },
+                      })
+                    }
+                  />
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        )}
 
         <DialogFooter>
           <Button onClick={handleSave}>Save changes</Button>

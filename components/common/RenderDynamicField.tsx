@@ -8,6 +8,13 @@ import {
   FormMessage,
 } from "../ui/form";
 import { Input } from "../ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 type RenderDynamicFieldProps = {
   formField: DragItem;
@@ -21,21 +28,52 @@ const RenderDynamicField: React.FC<RenderDynamicFieldProps> = ({
 }) => {
   if (formField.fieldType === "Input") {
     return (
-      <>
-        <FormField
-          control={form.control}
-          name={formField.name}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{formField.label}</FormLabel>
-              <FormControl>
-                <Input placeholder={formField.placeholder} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </>
+      <FormField
+        control={form.control}
+        name={formField.name}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>{formField.label}</FormLabel>
+            <FormControl>
+              <Input
+                placeholder={formField.placeholder}
+                {...field}
+                disabled={field.disabled}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    );
+  }
+
+  if (formField.fieldType === "Select") {
+    return (
+      <FormField
+        control={form.control}
+        name={formField.name}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>{formField.label}</FormLabel>
+            <FormControl>
+              <Select {...field} disabled={field.disabled}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={formField.placeholder} />
+                </SelectTrigger>
+                <SelectContent>
+                  {formField.options.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     );
   }
 

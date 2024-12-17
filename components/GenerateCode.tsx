@@ -18,6 +18,12 @@ const generateImports = (fields: DragItem[]) => {
     if (field.fieldType === "Input") {
       importSet.add('import { Input } from "@/components/ui/input"');
     }
+
+    if (field.fieldType === "Select") {
+      importSet.add(
+        'import {\n Select,\n  SelectContent,\n  SelectItem,\n  SelectTrigger,\n  SelectValue.\n} from "@/components/ui/select"'
+      );
+    }
   });
 
   return importSet;
@@ -49,16 +55,28 @@ export const generateZodSchema = (formFields: DragItem[]): z.ZodObject<any> => {
           fieldSchema = z.string({ message: field.validation.requiredMessage });
           break;
         }
+      case "Select":
+        const selectValues = field.options.map((option) => option.value) as [
+          string,
+          ...string[],
+        ];
+
+        fieldSchema = z.enum(selectValues, {
+          message: field.validation.requiredMessage,
+        });
+        break;
+
       default:
         fieldSchema = z.string({ message: field.validation.requiredMessage });
     }
 
-    // Apply regex validation if specified
     // Apply regex validation if specified and the field is a string
-    if (field.validation.regex && fieldSchema instanceof z.ZodString) {
-      fieldSchema = fieldSchema.regex(new RegExp(field.validation.regex), {
-        message: field.validation.regexMessage ?? "Invalid value",
-      });
+    if (field.customValidation) {
+      if (field.validation.regex && fieldSchema instanceof z.ZodString) {
+        fieldSchema = fieldSchema.regex(new RegExp(field.validation.regex), {
+          message: field.validation.regexMessage ?? "Invalid value",
+        });
+      }
     }
 
     if (field.validation.required !== true) {
@@ -88,15 +106,18 @@ export const generateDefaultValues = <T extends { name: string }>(
 };
 
 export const zodSchemaToString = (schema: z.ZodTypeAny): string => {
+  let baseMessage: string = "";
+  if (schema._def.errorMap) {
+    baseMessage = schema._def.errorMap(
+      { path: [] } as unknown as ZodIssueOptionalMessage,
+      { defaultError: "This field is required", data: undefined }
+    ).message;
+  }
+
   if (schema instanceof z.ZodString) {
     let stringSchema = `z.string()`;
 
-    if (schema._def.errorMap) {
-      const baseMessage = schema._def.errorMap(
-        { path: [] } as unknown as ZodIssueOptionalMessage,
-        { defaultError: "This field is required", data: undefined }
-      ).message;
-
+    if (baseMessage) {
       stringSchema = `z.string({ message: "${baseMessage}" })`;
     }
 
@@ -142,7 +163,9 @@ export const zodSchemaToString = (schema: z.ZodTypeAny): string => {
 
   if (schema instanceof z.ZodEnum) {
     const values = JSON.stringify(schema.options);
-    return `z.enum(${values})`;
+    return baseMessage
+      ? `z.enum(${values}, { message: "${baseMessage}" })`
+      : `z.enum(${values})`;
   }
 
   if (schema instanceof z.ZodObject) {
