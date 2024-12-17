@@ -285,6 +285,10 @@ const EditDialog: React.FC<EditDialogProps> = ({
                   validation: {
                     ...currentField.validation,
                     required: checkedState as boolean,
+                    requiredMessage: !checkedState
+                      ? ""
+                      : currentField.validation.requiredMessage ||
+                        "This field is required",
                   } as BaseValidation & RegexValidation,
                 })
               }
