@@ -29,16 +29,14 @@ export const FormBuilder = () => {
 
     if (type === "Input") {
       const defaultInput = getInput({ id: fieldId });
-      setFields((prevFields) => [
-        ...structuredClone(prevFields),
-        { ...defaultInput, fieldType: type },
+      setFields([...fields,
+        { ...defaultInput, fieldType: type }
       ]);
     }
     if (type === "Select") {
       const defaultSelect = getSelect({ id: fieldId });
-      setFields((prevFields) => [
-        ...structuredClone(prevFields),
-        { ...defaultSelect, fieldType: type },
+      setFields([...prevFields,
+        { ...defaultSelect, fieldType: type }
       ]);
     }
   };
