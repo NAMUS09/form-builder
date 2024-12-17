@@ -29,7 +29,8 @@ const RenderDynamicField: React.FC<RenderDynamicFieldProps> = ({
     return (
       <FormItem>
         <FormLabel>
-          {formField.label} {formField.validation.required && "*"}
+          {formField.label}
+          {formField.validation.required && " *"}
         </FormLabel>
         <FormControl>
           <Input
@@ -49,10 +50,15 @@ const RenderDynamicField: React.FC<RenderDynamicFieldProps> = ({
       <FormItem>
         <FormLabel>
           {formField.label}
-          {formField.validation.required && "*"}
+          {formField.validation.required && " *"}
         </FormLabel>
         <FormControl>
-          <Select {...field} disabled={formField.validation.disabled ?? false}>
+          <Select
+            {...field}
+            onValueChange={field.onChange}
+            defaultValue={field.value}
+            disabled={formField.validation.disabled ?? false}
+          >
             <SelectTrigger className="w-full">
               <SelectValue placeholder={formField.placeholder} />
             </SelectTrigger>
