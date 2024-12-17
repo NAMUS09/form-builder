@@ -35,7 +35,7 @@ export const FormBuilder = () => {
     }
     if (type === "Select") {
       const defaultSelect = getSelect({ id: fieldId });
-      setFields([... fields,
+      setFields([...fields,
         { ...defaultSelect, fieldType: type }
       ]);
     }
