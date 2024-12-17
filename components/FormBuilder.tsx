@@ -26,18 +26,18 @@ export const FormBuilder = () => {
 
   const addFields = (type: AvailableFieldsType) => {
     const fieldId = getRandomSixDigit();
+
     if (type === "Input") {
       const defaultInput = getInput({ id: fieldId });
       setFields((prevFields) => [
-        ...prevFields,
+        ...structuredClone(prevFields),
         { ...defaultInput, fieldType: type },
       ]);
     }
     if (type === "Select") {
-      const fieldId = getRandomSixDigit();
       const defaultSelect = getSelect({ id: fieldId });
       setFields((prevFields) => [
-        ...prevFields,
+        ...structuredClone(prevFields),
         { ...defaultSelect, fieldType: type },
       ]);
     }
@@ -53,7 +53,7 @@ export const FormBuilder = () => {
       <div className="md:col-span-2 border-r-2 md:h-[85svh]">
         <h4 className="text-lg font-bold mb-2">Available fields</h4>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-wrap md:flex-col md:flex-nowrap gap-2">
           <DragField type="Input" onAddField={addFields} />
           <DragField type="Select" onAddField={addFields} />
         </div>

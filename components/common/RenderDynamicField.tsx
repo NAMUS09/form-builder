@@ -1,12 +1,6 @@
 import { DragItem } from "@/lib/interface";
-import { UseFormReturn } from "react-hook-form";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "../ui/form";
+import { ControllerRenderProps } from "react-hook-form";
+import { FormControl, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { Input } from "../ui/input";
 import {
   Select,
@@ -18,63 +12,61 @@ import {
 
 type RenderDynamicFieldProps = {
   formField: DragItem;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  form: UseFormReturn<any>;
+  field: ControllerRenderProps<
+    {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      [x: string]: any;
+    },
+    string
+  >;
 };
 
 const RenderDynamicField: React.FC<RenderDynamicFieldProps> = ({
   formField,
-  form,
+  field,
 }) => {
   if (formField.fieldType === "Input") {
     return (
-      <FormField
-        control={form.control}
-        name={formField.name}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>{formField.label}</FormLabel>
-            <FormControl>
-              <Input
-                placeholder={formField.placeholder}
-                type={formField.type}
-                disabled={field.disabled}
-                {...field}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      <FormItem>
+        <FormLabel>
+          {formField.label} {formField.validation.required && "*"}
+        </FormLabel>
+        <FormControl>
+          <Input
+            placeholder={formField.placeholder}
+            type={formField.type}
+            disabled={formField.validation.disabled ?? false}
+            {...field}
+          />
+        </FormControl>
+        <FormMessage />
+      </FormItem>
     );
   }
 
   if (formField.fieldType === "Select") {
     return (
-      <FormField
-        control={form.control}
-        name={formField.name}
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>{formField.label}</FormLabel>
-            <FormControl>
-              <Select {...field} disabled={field.disabled}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={formField.placeholder} />
-                </SelectTrigger>
-                <SelectContent>
-                  {formField.options.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      <FormItem>
+        <FormLabel>
+          {formField.label}
+          {formField.validation.required && "*"}
+        </FormLabel>
+        <FormControl>
+          <Select {...field} disabled={formField.validation.disabled ?? false}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={formField.placeholder} />
+            </SelectTrigger>
+            <SelectContent>
+              {formField.options.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FormControl>
+        <FormMessage />
+      </FormItem>
     );
   }
 

@@ -4,13 +4,13 @@ import { use } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { FormBuilderContext } from "./FormBuilder";
-import RenderDynamicField from "./common/RenderDynamicField";
 
 import { DragItem } from "@/lib/interface";
 import { zodResolver } from "@hookform/resolvers/zod";
+import RenderDynamicField from "./common/RenderDynamicField";
 import { generateDefaultValues, generateZodSchema } from "./GenerateCode";
 import { Button } from "./ui/button";
-import { Form } from "./ui/form";
+import { Form, FormField } from "./ui/form";
 
 export const FormPlayground = () => {
   const formBuilderState = use(FormBuilderContext);
@@ -39,6 +39,8 @@ export const FormPlayground = () => {
   const getKey = (field: DragItem) => {
     let key = `${field.fieldType}-${field.id}-${field.name}`;
     if (field.fieldType === "Input") key += `-${field.type}`;
+    if (field.validation.required) key += `-required`;
+    if (field.validation.disabled) key += `-disabled`;
     return key;
   };
 
@@ -46,10 +48,15 @@ export const FormPlayground = () => {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="text-left px-2">
         <div className="flex flex-col gap-4 mb-4">
-          {fields.map((field) => (
-            <div key={getKey(field)}>
-              <RenderDynamicField formField={field} form={form} />
-            </div>
+          {fields.map((formField) => (
+            <FormField
+              key={getKey(formField)}
+              control={form.control}
+              name={formField.name}
+              render={({ field }) => (
+                <RenderDynamicField formField={formField} field={field} />
+              )}
+            />
           ))}
         </div>
         <Button type="submit">Submit</Button>
