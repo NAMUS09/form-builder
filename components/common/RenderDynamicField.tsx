@@ -37,8 +37,9 @@ const RenderDynamicField: React.FC<RenderDynamicFieldProps> = ({
             <FormControl>
               <Input
                 placeholder={formField.placeholder}
-                {...field}
+                type={formField.type}
                 disabled={field.disabled}
+                {...field}
               />
             </FormControl>
             <FormMessage />

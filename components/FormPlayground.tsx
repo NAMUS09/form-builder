@@ -6,6 +6,7 @@ import { z } from "zod";
 import { FormBuilderContext } from "./FormBuilder";
 import RenderDynamicField from "./common/RenderDynamicField";
 
+import { DragItem } from "@/lib/interface";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { generateDefaultValues, generateZodSchema } from "./GenerateCode";
 import { Button } from "./ui/button";
@@ -35,12 +36,18 @@ export const FormPlayground = () => {
     }
   };
 
+  const getKey = (field: DragItem) => {
+    let key = `${field.fieldType}-${field.id}-${field.name}`;
+    if (field.fieldType === "Input") key += `-${field.type}`;
+    return key;
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="text-left px-2">
         <div className="flex flex-col gap-4 mb-4">
           {fields.map((field) => (
-            <div key={field.id}>
+            <div key={getKey(field)}>
               <RenderDynamicField formField={field} form={form} />
             </div>
           ))}
