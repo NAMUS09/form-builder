@@ -79,7 +79,7 @@ export const generateZodSchema = (formFields: DragItem[]): z.ZodObject<any> => {
       }
     }
 
-    if (field.validation.required !== true) {
+    if (!field.validation.required) {
       fieldSchema = fieldSchema.optional();
     }
 

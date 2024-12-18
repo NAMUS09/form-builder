@@ -27,18 +27,21 @@ export const FormBuilder = () => {
   const addFields = (type: AvailableFieldsType) => {
     const fieldId = getRandomSixDigit();
 
+    let newField: DragItem | null = null;
+
     if (type === "Input") {
-      const defaultInput = getInput({ id: fieldId });
-      setFields([...fields,
-        { ...defaultInput, fieldType: type }
-      ]);
+      newField = getInput({ id: fieldId });
     }
     if (type === "Select") {
-      const defaultSelect = getSelect({ id: fieldId });
-      setFields([...fields,
-        { ...defaultSelect, fieldType: type }
-      ]);
+      newField = getSelect({ id: fieldId });
     }
+
+    if (!newField) return;
+
+    setFields((prevFields) => [
+      ...prevFields,
+      { ...newField, fieldType: type } as DragItem,
+    ]);
   };
 
   const openEditDialog = (field: DragItem) => {
